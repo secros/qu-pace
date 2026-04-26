@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pace Calculator — Running Pace, Speed & Finish Time — QuickUtils</title>
+<meta name="description" content="Calculate running pace, speed, or finish time for any race distance. Supports 5K, 10K, half marathon, marathon, and custom distances. Free pace calculator.">
+<meta property="og:title" content="Pace Calculator — QuickUtils">
+<meta property="og:description" content="Calculate your running pace, finish time, or required speed for any race distance. 5K, 10K, half marathon, marathon and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#111014;--surface:#18161c;--surface2:#201e26;--border:#2a2730;--border-bright:#3a3545;
+  --orange:#ff6b00;--orange-dim:rgba(255,107,0,0.1);--orange-glow:rgba(255,107,0,0.25);
+  --yellow:#ffd60a;--purple:#7c3aed;--purple-dim:rgba(124,58,237,0.12);
+  --green:#22d37a;--red:#ff4d6d;
+  --text:#f0edf8;--text-muted:#7a7390;--text-dim:#3a3550;
+  --radius:8px;
+  --font-head:'Bebas Neue',cursive;
+  --font-sub:'Barlow Condensed',sans-serif;
+  --font-body:'Barlow',sans-serif;
+  --font-mono:'Roboto Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;line-height:1.6}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,107,0,0.06) 0%,transparent 60%);pointer-events:none;z-index:0}
+body.embed header,body.embed footer,body.embed .ads-top,body.embed .ads-mid,body.embed .share-section,body.embed .faq-section,body.embed .related-section{display:none!important}
+body.embed .embed-credit{display:flex!important}
+.embed-credit{display:none;justify-content:center;padding:.5rem;font-size:.72rem;color:var(--text-muted);background:var(--surface);font-family:var(--font-mono)}
+.embed-credit a{color:var(--orange);text-decoration:none}
+header{border-bottom:1px solid var(--border);padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:relative;z-index:1}
+.logo{font-family:var(--font-sub);font-weight:700;font-size:1.1rem;color:var(--orange);text-decoration:none;letter-spacing:.04em}
+.logo span{color:var(--text-muted);font-weight:400}
+.bookmark-tip{font-size:.7rem;color:var(--text-dim);font-family:var(--font-mono)}
+.bookmark-tip kbd{background:var(--border);padding:.1em .4em;border-radius:3px;color:var(--text-muted)}
+.ads-top{background:var(--surface);border-bottom:1px solid var(--border);padding:.75rem 2rem;text-align:center;min-height:60px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.72rem;font-family:var(--font-mono);position:relative;z-index:1}
+main{max-width:720px;margin:0 auto;padding:2.5rem 1.5rem 4rem;position:relative;z-index:1}
+.hero{margin-bottom:2rem}
+.hero-tag{font-family:var(--font-mono);font-size:.68rem;color:var(--orange);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.4rem}
+h1{font-family:var(--font-head);font-size:clamp(3rem,10vw,5rem);line-height:.95;letter-spacing:.02em;color:var(--text)}
+h1 em{font-style:normal;color:var(--orange)}
+.hero-sub{margin-top:.6rem;color:var(--text-muted);font-size:.93rem;font-weight:300;max-width:500px}
+
+/* mode tabs */
+.mode-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.mode-tab{padding:.55rem 1.2rem;border-radius:var(--radius);border:1px solid var(--border-bright);background:var(--surface);color:var(--text-muted);font-family:var(--font-sub);font-size:.88rem;font-weight:600;letter-spacing:.04em;cursor:pointer;transition:all .15s;text-transform:uppercase}
+.mode-tab.active{background:var(--orange);color:#111;border-color:var(--orange)}
+.mode-tab:hover:not(.active){border-color:var(--orange);color:var(--orange)}
+
+/* card */
+.calc-card{background:var(--surface);border:1px solid var(--border-bright);border-radius:14px;padding:2rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.calc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--yellow))}
+.mode-desc{font-size:.82rem;color:var(--text-muted);margin-bottom:1.5rem;padding:.6rem .9rem;background:var(--orange-dim);border-left:3px solid var(--orange);border-radius:0 var(--radius) var(--radius) 0;font-family:var(--font-body)}
+
+/* distance presets */
+.distance-presets{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem}
+.dist-btn{padding:.28rem .75rem;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text-muted);font-family:var(--font-mono);font-size:.72rem;cursor:pointer;transition:all .15s;letter-spacing:.03em}
+.dist-btn:hover{border-color:var(--orange);color:var(--orange)}
+.dist-btn.active{background:var(--orange-dim);border-color:var(--orange);color:var(--orange)}
+
+/* inputs */
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+@media(max-width:500px){.input-grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:.35rem}
+.field label{font-size:.7rem;font-weight:600;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;font-family:var(--font-mono)}
+.field-wrap{position:relative;display:flex;align-items:center;gap:.4rem}
+.time-inputs{display:flex;align-items:center;gap:.3rem}
+.time-part{display:flex;flex-direction:column;align-items:center;gap:.2rem;flex:1}
+.time-part span{font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);letter-spacing:.06em;text-transform:uppercase}
+.time-sep{font-family:var(--font-mono);font-size:1.2rem;color:var(--text-dim);margin-bottom:.8rem}
+.field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border-bright);border-radius:var(--radius);color:var(--text);font-family:var(--font-mono);font-size:1rem;padding:.65rem .9rem;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.field input:focus,.field select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-dim)}
+.field-unit{position:absolute;right:.9rem;font-family:var(--font-mono);font-size:.72rem;color:var(--text-dim);pointer-events:none}
+.field input.has-unit{padding-right:3rem}
+.full{grid-column:1/-1}
+.calc-btn{width:100%;background:var(--orange);color:#111;border:none;border-radius:var(--radius);font-family:var(--font-head);font-size:1.2rem;padding:.8rem;cursor:pointer;letter-spacing:.06em;transition:background .15s,transform .1s}
+.calc-btn:hover{background:#ff8533}
+.calc-btn:active{transform:scale(.99)}
+
+/* results */
+.results{display:none;margin-top:1.75rem;border-top:1px solid var(--border);padding-top:1.75rem}
+.results.show{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.result-hero{text-align:center;margin-bottom:1.5rem}
+.result-label{font-family:var(--font-mono);font-size:.68rem;color:var(--text-muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.3rem}
+.result-value{font-family:var(--font-head);font-size:clamp(3rem,12vw,5.5rem);color:var(--orange);line-height:1;letter-spacing:.02em}
+.result-sub{font-size:.9rem;color:var(--text-muted);margin-top:.2rem;font-family:var(--font-body)}
+
+.splits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.7rem;margin-top:1rem}
+.split-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem}
+.split-label{font-family:var(--font-mono);font-size:.62rem;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.2rem}
+.split-value{font-family:var(--font-mono);font-size:1.05rem;font-weight:500;color:var(--text)}
+.split-card.highlight{border-color:var(--orange);background:var(--orange-dim)}
+.split-card.highlight .split-value{color:var(--orange)}
+
+/* pace chart */
+.pace-chart{margin-top:1.5rem}
+.pace-chart-title{font-family:var(--font-sub);font-size:.78rem;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.6rem}
+.chart-rows{display:flex;flex-direction:column;gap:.35rem}
+.chart-row{display:flex;align-items:center;gap:.6rem}
+.chart-dist{font-family:var(--font-mono);font-size:.7rem;color:var(--text-dim);width:55px;flex-shrink:0;text-align:right}
+.chart-bar-wrap{flex:1;background:var(--surface2);border-radius:3px;height:6px;overflow:hidden}
+.chart-bar{height:100%;background:linear-gradient(90deg,var(--orange),var(--yellow));border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.chart-time{font-family:var(--font-mono);font-size:.7rem;color:var(--text-muted);width:75px;flex-shrink:0}
+
+/* ads/share/faq/related */
+.ads-mid{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;text-align:center;min-height:100px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.72rem;font-family:var(--font-mono);margin-bottom:2.5rem}
+.share-section{margin-bottom:2.5rem}
+.section-title{font-family:var(--font-sub);font-size:.88rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.9rem;color:var(--text-muted)}
+.share-btns{display:flex;gap:.6rem;flex-wrap:wrap}
+.share-btn{padding:.45rem 1rem;border-radius:6px;border:1px solid var(--border-bright);background:var(--surface);color:var(--text-muted);font-size:.75rem;font-family:var(--font-mono);cursor:pointer;text-decoration:none;transition:border-color .15s,color .15s}
+.share-btn:hover{border-color:var(--orange);color:var(--orange)}
+.faq-section{margin-bottom:2.5rem}
+.faq-section h2{font-family:var(--font-head);font-size:2.2rem;letter-spacing:.02em;margin-bottom:1rem}
+details{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.6rem;background:var(--surface);overflow:hidden}
+summary{padding:.9rem 1.1rem;cursor:pointer;font-weight:600;font-size:.88rem;list-style:none;display:flex;justify-content:space-between;align-items:center;color:var(--text)}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';font-family:var(--font-mono);color:var(--orange);font-size:1.1rem;flex-shrink:0}
+details[open] summary::after{content:'−'}
+details p{padding:0 1.1rem 1rem;color:var(--text-muted);font-size:.86rem;line-height:1.65}
+.related-section{margin-bottom:3rem}
+.related-section h2{font-family:var(--font-head);font-size:2.2rem;letter-spacing:.02em;margin-bottom:1rem}
+#related-tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:.75rem}
+.related-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-decoration:none;transition:border-color .15s,transform .15s}
+.related-card:hover{border-color:var(--orange);transform:translateY(-2px)}
+.related-card-emoji{font-size:1.3rem;margin-bottom:.4rem}
+.related-card-title{font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.2rem}
+.related-card-desc{font-size:.73rem;color:var(--text-muted);line-height:1.4}
+footer{border-top:1px solid var(--border);padding:1.5rem 2rem;text-align:center;color:var(--text-dim);font-size:.72rem;font-family:var(--font-mono);position:relative;z-index:1}
+footer a{color:var(--text-muted);text-decoration:none}
+footer a:hover{color:var(--orange)}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="https://quickutils.tools" class="logo">quick<span>utils</span>.tools</a>
+  <span class="bookmark-tip">Save: <kbd id="bm-key">Ctrl+D</kbd></span>
+</header>
+<div class="ads-top">[ Advertisement ]</div>
+
+<main>
+  <div class="hero">
+    <p class="hero-tag">🏃 Running Calculator</p>
+    <h1>PACE<br><em>CALCULATOR</em></h1>
+    <p class="hero-sub">Calculate running pace, finish time, or required speed for any race distance. Split tables included.</p>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="setMode('pace')">Find Pace</button>
+    <button class="mode-tab" onclick="setMode('time')">Find Finish Time</button>
+    <button class="mode-tab" onclick="setMode('dist')">Find Distance</button>
+  </div>
+
+  <div class="calc-card">
+    <div class="mode-desc" id="mode-desc">Enter your finish time and distance to calculate your pace per mile/km.</div>
+
+    <!-- distance presets -->
+    <div id="preset-row" class="distance-presets">
+      <button class="dist-btn" onclick="setDist(3.10686,'mi','5K')">5K</button>
+      <button class="dist-btn" onclick="setDist(6.21371,'mi','10K')">10K</button>
+      <button class="dist-btn" onclick="setDist(13.1094,'mi','Half')">Half Marathon</button>
+      <button class="dist-btn" onclick="setDist(26.2188,'mi','Full')">Marathon</button>
+      <button class="dist-btn" onclick="setDist(1,'mi','1 Mile')">1 Mile</button>
+      <button class="dist-btn" onclick="setDist(1,'km','1 KM')">1 KM</button>
+    </div>
+
+    <div class="input-grid" id="fields-grid"></div>
+
+    <button class="calc-btn" onclick="calculate()">CALCULATE</button>
+
+    <div class="results" id="results">
+      <div class="result-hero">
+        <div class="result-label" id="hero-label">Your Pace</div>
+        <div class="result-value" id="hero-value">—</div>
+        <div class="result-sub" id="hero-sub"></div>
+      </div>
+      <div class="splits-grid" id="splits-grid"></div>
+      <div class="pace-chart" id="pace-chart" style="display:none">
+        <div class="pace-chart-title">Cumulative Time by Distance</div>
+        <div class="chart-rows" id="chart-rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ads-mid">[ Advertisement ]</div>
+
+  <div class="share-section">
+    <p class="section-title">Share This Tool</p>
+    <div class="share-btns">
+      <a class="share-btn" id="share-twitter" href="#" target="_blank" rel="noopener">𝕏 Twitter</a>
+      <a class="share-btn" id="share-facebook" href="#" target="_blank" rel="noopener">Facebook</a>
+      <a class="share-btn" id="share-reddit" href="#" target="_blank" rel="noopener">Reddit</a>
+      <button class="share-btn" onclick="copyLink()">📋 Copy Link</button>
+    </div>
+  </div>
+
+  <div class="faq-section">
+    <h2>FAQ</h2>
+    <details><summary>What is running pace?</summary><p>Running pace is how long it takes you to cover one unit of distance — typically expressed as minutes per mile (min/mi) or minutes per kilometer (min/km). For example, a 9:00/mi pace means you run each mile in 9 minutes. Pace is the inverse of speed: a faster runner has a lower (smaller) pace number.</p></details>
+    <details><summary>How do I calculate my pace from a race finish time?</summary><p>Divide your total finish time (in seconds) by the distance (in miles or km). Convert the result back to minutes and seconds. For example, finishing a 5K (3.107 miles) in 30:00 (1800 seconds): 1800 ÷ 3.107 = 579.5 sec/mile = 9:39/mile pace. Our calculator does this instantly.</p></details>
+    <details><summary>What is a good running pace for beginners?</summary><p>Most beginners run at 10–14 minutes per mile (6:15–8:42 per km). A comfortable conversational pace — where you can speak in full sentences — is ideal for building base fitness. As you progress, you'll naturally speed up. For a 5K, finishing under 40 minutes (about 12:50/mi) is a great beginner goal.</p></details>
+    <details><summary>What pace do I need to qualify for the Boston Marathon?</summary><p>Boston qualifying standards vary by age and sex. For men 18–34, the standard is 3:00:00 (about 6:52/mile). For women 18–34, it's 3:30:00 (about 8:01/mile). Standards get more lenient with age. Note that you typically need to beat the qualifier by 2–5+ minutes to actually receive a bib due to demand.</p></details>
+    <details><summary>What is a negative split in running?</summary><p>A negative split is when you run the second half of a race faster than the first half. It's widely considered the optimal race strategy because it prevents early burnout and allows you to finish strong. Most elite runners and coaches recommend starting slightly slower than goal pace and gradually increasing effort through the race.</p></details>
+    <details><summary>How do I convert pace between miles and kilometers?</summary><p>To convert min/mile to min/km, divide by 1.60934. To convert min/km to min/mile, multiply by 1.60934. For example, a 9:00/mile pace = 9:00 ÷ 1.60934 = 5:35/km. Our calculator handles this conversion automatically — just select your preferred unit.</p></details>
+  </div>
+
+  <div class="related-section">
+    <h2>MORE TOOLS</h2>
+    <div id="related-tools-grid">Loading tools…</div>
+  </div>
+</main>
+
+<div class="ads-mid" style="margin:0">[ Advertisement ]</div>
+
+<footer>
+  <p>© 2025 <a href="https://quickutils.tools">QuickUtils.tools</a> · Free online tools ·
+  <a href="https://quickutils.tools/privacy.html">Privacy</a> · <a href="https://quickutils.tools/terms.html">Terms</a></p>
+</footer>
+<div class="embed-credit">Powered by <a href="https://quickutils.tools" target="_blank">QuickUtils.tools</a></div>
+
+<script>
+if(new URLSearchParams(location.search).get('embed')==='1')document.body.classList.add('embed');
+document.getElementById('bm-key').textContent=/Mac|iPhone|iPad/.test(navigator.userAgent)?'⌘+D':'Ctrl+D';
+
+let mode='pace';
+let distUnit='mi';
+let selectedDist=null; // miles
+let activeDistBtn=null;
+
+const MODES={
+  pace:{
+    desc:'Enter your finish time and distance to calculate your pace per mile or km.',
+    heroLabel:'Your Pace',
+    fields:['time','distance','distunit']
+  },
+  time:{
+    desc:'Enter your pace and distance to calculate your total finish time.',
+    heroLabel:'Finish Time',
+    fields:['pace','distance','distunit']
+  },
+  dist:{
+    desc:'Enter your pace and time to calculate how far you ran.',
+    heroLabel:'Distance',
+    fields:['pace','time','distunit']
+  }
+};
+
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.mode-tab').forEach((el,i)=>el.classList.toggle('active',['pace','time','dist'][i]===m));
+  document.getElementById('mode-desc').textContent=MODES[m].desc;
+  // show presets only when distance is an input
+  document.getElementById('preset-row').style.display=(m==='dist')?'none':'flex';
+  renderFields();
+  document.getElementById('results').classList.remove('show');
+}
+
+function setDist(miles,unit,label){
+  selectedDist=miles;
+  distUnit=unit;
+  document.querySelectorAll('.dist-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  // fill distance field if visible
+  const df=document.getElementById('f-distance');
+  const uf=document.getElementById('f-distunit');
+  if(df){
+    df.value=unit==='mi'?miles.toFixed(unit==='mi'&&miles===Math.round(miles)?0:4):
+      (miles*1.60934).toFixed(unit==='km'&&miles===Math.round(miles)?0:4);
+    df.value=unit==='mi'?
+      (miles<2?miles.toFixed(4):parseFloat(miles.toFixed(2))):
+      parseFloat((miles*1.60934).toFixed(2));
+  }
+  if(uf)uf.value=unit;
+}
+
+function renderFields(){
+  const grid=document.getElementById('fields-grid');
+  const m=MODES[mode];
+  let html='';
+
+  if(m.fields.includes('time')){
+    html+=`<div class="field full">
+      <label>Time (hh : mm : ss)</label>
+      <div class="time-inputs">
+        <div class="time-part"><input type="number" id="t-h" min="0" max="99" placeholder="0"><span>hr</span></div>
+        <div class="time-sep">:</div>
+        <div class="time-part"><input type="number" id="t-m" min="0" max="59" placeholder="00"><span>min</span></div>
+        <div class="time-sep">:</div>
+        <div class="time-part"><input type="number" id="t-s" min="0" max="59" placeholder="00"><span>sec</span></div>
+      </div>
+    </div>`;
+  }
+
+  if(m.fields.includes('pace')){
+    html+=`<div class="field full">
+      <label>Pace (min : sec per unit)</label>
+      <div class="time-inputs">
+        <div class="time-part"><input type="number" id="p-m" min="0" max="99" placeholder="9"><span>min</span></div>
+        <div class="time-sep">:</div>
+        <div class="time-part"><input type="number" id="p-s" min="0" max="59" placeholder="00"><span>sec</span></div>
+        <div class="time-sep" style="opacity:0">:</div>
+        <div class="time-part">
+          <select id="p-unit" style="font-size:.8rem;padding:.5rem .4rem">
+            <option value="mi">/ mile</option>
+            <option value="km">/ km</option>
+          </select>
+          <span>unit</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if(m.fields.includes('distance')){
+    html+=`<div class="field">
+      <label>Distance</label>
+      <div class="field-wrap">
+        <input type="number" id="f-distance" min="0" step="any" placeholder="3.1" class="has-unit">
+        <span class="field-unit" id="dist-unit-label">mi</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Distance Unit</label>
+      <div class="field-wrap">
+        <select id="f-distunit" onchange="updateDistUnit()">
+          <option value="mi">Miles</option>
+          <option value="km">Kilometers</option>
+          <option value="m">Meters</option>
+        </select>
+      </div>
+    </div>`;
+  }
+
+  if(m.fields.includes('distunit')&&!m.fields.includes('distance')){
+    html+=`<div class="field">
+      <label>Distance Unit</label>
+      <div class="field-wrap">
+        <select id="f-distunit">
+          <option value="mi">Miles</option>
+          <option value="km">Kilometers</option>
+        </select>
+      </div>
+    </div>`;
+  }
+
+  grid.innerHTML=html;
+  grid.querySelectorAll('input,select').forEach(el=>{
+    el.addEventListener('keydown',e=>{if(e.key==='Enter')calculate()});
+  });
+}
+
+function updateDistUnit(){
+  const u=document.getElementById('f-distunit').value;
+  const lbl=document.getElementById('dist-unit-label');
+  if(lbl)lbl.textContent=u;
+}
+
+// time helpers
+function getTimeSec(hId,mId,sId){
+  const h=parseFloat(document.getElementById(hId)?.value)||0;
+  const m=parseFloat(document.getElementById(mId)?.value)||0;
+  const s=parseFloat(document.getElementById(sId)?.value)||0;
+  return h*3600+m*60+s;
+}
+function getPaceSec(){
+  const m=parseFloat(document.getElementById('p-m')?.value)||0;
+  const s=parseFloat(document.getElementById('p-s')?.value)||0;
+  return m*60+s;
+}
+function getDistMiles(){
+  const v=parseFloat(document.getElementById('f-distance')?.value);
+  if(!v||v<=0)return null;
+  const u=document.getElementById('f-distunit')?.value||'mi';
+  if(u==='km')return v/1.60934;
+  if(u==='m')return v/1609.34;
+  return v;
+}
+function fmtTime(totalSec){
+  const h=Math.floor(totalSec/3600);
+  const m=Math.floor((totalSec%3600)/60);
+  const s=Math.floor(totalSec%60);
+  if(h>0)return `${h}:${pad(m)}:${pad(s)}`;
+  return `${m}:${pad(s)}`;
+}
+function fmtPace(secPerUnit){
+  const m=Math.floor(secPerUnit/60);
+  const s=Math.round(secPerUnit%60);
+  return `${m}:${pad(s)}`;
+}
+function pad(n){return String(n).padStart(2,'0')}
+
+function calculate(){
+  const distUnit2=document.getElementById('f-distunit')?.value||'mi';
+  const paceUnit=document.getElementById('p-unit')?.value||'mi';
+
+  if(mode==='pace'){
+    const totalSec=getTimeSec('t-h','t-m','t-s');
+    const distMi=getDistMiles();
+    if(!totalSec){alert('Please enter a finish time.');return}
+    if(!distMi){alert('Please enter a distance.');return}
+
+    const secPerMile=totalSec/distMi;
+    const secPerKm=secPerMile/1.60934;
+    const speedMph=3600/secPerMile;
+    const speedKph=speedMph*1.60934;
+
+    document.getElementById('hero-label').textContent='Your Pace';
+    document.getElementById('hero-value').textContent=fmtPace(secPerMile)+'/mi';
+    document.getElementById('hero-sub').textContent=fmtPace(secPerKm)+'/km · '+speedMph.toFixed(1)+' mph · '+speedKph.toFixed(1)+' km/h';
+
+    showSplits(secPerMile,distMi,totalSec,'pace');
+
+  } else if(mode==='time'){
+    const paceSec=getPaceSec();
+    const distMi=getDistMiles();
+    if(!paceSec){alert('Please enter your pace.');return}
+    if(!distMi){alert('Please enter a distance.');return}
+
+    const paceSecPerMile=paceUnit==='km'?paceSec*1.60934:paceSec;
+    const totalSec=paceSecPerMile*distMi;
+
+    document.getElementById('hero-label').textContent='Finish Time';
+    document.getElementById('hero-value').textContent=fmtTime(totalSec);
+    document.getElementById('hero-sub').textContent=fmtPace(paceSecPerMile)+'/mi · '+fmtPace(paceSecPerMile/1.60934)+'/km';
+
+    showSplits(paceSecPerMile,distMi,totalSec,'time');
+
+  } else {
+    const paceSec=getPaceSec();
+    const totalSec=getTimeSec('t-h','t-m','t-s');
+    if(!paceSec){alert('Please enter your pace.');return}
+    if(!totalSec){alert('Please enter a time.');return}
+
+    const paceSecPerMile=paceUnit==='km'?paceSec*1.60934:paceSec;
+    const miles=totalSec/paceSecPerMile;
+    const km=miles*1.60934;
+
+    document.getElementById('hero-label').textContent='Distance';
+    document.getElementById('hero-value').textContent=miles.toFixed(2)+' mi';
+    document.getElementById('hero-sub').textContent=km.toFixed(2)+' km';
+
+    document.getElementById('splits-grid').innerHTML='';
+    document.getElementById('pace-chart').style.display='none';
+  }
+
+  document.getElementById('results').classList.add('show');
+}
+
+function showSplits(secPerMile,distMi,totalSec,type){
+  const km=distMi*1.60934;
+  const secPerKm=secPerMile/1.60934;
+  const mph=3600/secPerMile;
+  const kph=mph*1.60934;
+
+  const splits=[
+    {label:'Mile Pace',value:fmtPace(secPerMile)+'/mi',hi:false},
+    {label:'KM Pace',value:fmtPace(secPerKm)+'/km',hi:false},
+    {label:'Speed (mph)',value:mph.toFixed(2)+' mph',hi:false},
+    {label:'Speed (km/h)',value:kph.toFixed(2)+' km/h',hi:false},
+    {label:'Total Time',value:fmtTime(totalSec),hi:true},
+    {label:'Distance',value:distMi.toFixed(2)+' mi / '+km.toFixed(2)+' km',hi:false},
+  ];
+
+  document.getElementById('splits-grid').innerHTML=splits.map(s=>`
+    <div class="split-card ${s.hi?'highlight':''}">
+      <div class="split-label">${s.label}</div>
+      <div class="split-value">${s.value}</div>
+    </div>
+  `).join('');
+
+  // chart: mile splits up to the race distance
+  const chartEl=document.getElementById('pace-chart');
+  const rowsEl=document.getElementById('chart-rows');
+  const checkpoints=[];
+  let m=1;
+  while(m<=distMi){checkpoints.push(m);m++;}
+  if(distMi>1&&checkpoints[checkpoints.length-1]!==parseFloat(distMi.toFixed(2)))checkpoints.push(parseFloat(distMi.toFixed(2)));
+
+  if(checkpoints.length>1&&checkpoints.length<=28){
+    chartEl.style.display='block';
+    const maxTime=totalSec;
+    rowsEl.innerHTML=checkpoints.map(d=>{
+      const t=d*secPerMile;
+      const pct=Math.round((t/maxTime)*100);
+      return `<div class="chart-row">
+        <span class="chart-dist">${d===Math.round(d)?d+'mi':d+'mi'}</span>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="width:${pct}%"></div></div>
+        <span class="chart-time">${fmtTime(t)}</span>
+      </div>`;
+    }).join('');
+  } else {
+    chartEl.style.display='none';
+  }
+}
+
+// init
+renderFields();
+
+const pageUrl=encodeURIComponent('https://pace.quickutils.tools');
+const pageTitle=encodeURIComponent('Pace Calculator — Running Pace, Speed & Finish Time — QuickUtils');
+document.getElementById('share-twitter').href=`https://twitter.com/intent/tweet?url=${pageUrl}&text=${pageTitle}`;
+document.getElementById('share-facebook').href=`https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
+document.getElementById('share-reddit').href=`https://reddit.com/submit?url=${pageUrl}&title=${pageTitle}`;
+function copyLink(){navigator.clipboard.writeText('https://pace.quickutils.tools').then(()=>alert('Link copied!'))}
+
+(function(){
+  const s=document.createElement('script');
+  s.src='https://quickutils.tools/tools.js';
+  s.onload=()=>typeof renderRelatedTools==='function'&&
+    renderRelatedTools({targetId:'related-tools-grid',currentUrl:'https://pace.quickutils.tools',max:4});
+  document.head.appendChild(s);
+})();
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8872742474601337" crossorigin="anonymous"></script>
+</body>
+</html>
